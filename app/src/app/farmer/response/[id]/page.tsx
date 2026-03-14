@@ -3,16 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import type { Query, Response as QueryResponse } from "@dko/shared";
+import type { Escalation, Query, Response as QueryResponse } from "@dko/shared";
 import {
   ArrowLeft,
   ArrowRight,
   Camera,
   CheckCircle2,
+  Clock3,
   Leaf,
   MessageSquareText,
   Mic,
-  Sparkles
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { apiClient } from "@/lib/api";
@@ -47,8 +50,11 @@ export default function FarmerResponsePage() {
   const { appUser, loading } = useAuth();
   const [query, setQuery] = useState<Query | null>(null);
   const [responses, setResponses] = useState<QueryResponse[]>([]);
+  const [escalation, setEscalation] = useState<Escalation | null>(null);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackState, setFeedbackState] = useState<"idle" | "helpful" | "not_helpful">("idle");
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !appUser) {
@@ -56,34 +62,36 @@ export default function FarmerResponsePage() {
     }
   }, [appUser, loading, router]);
 
-  useEffect(() => {
-    async function loadQuery() {
-      if (!params.id || !appUser) {
-        return;
-      }
-
-      setFetching(true);
-      setError(null);
-
-      try {
-        const result = await apiClient.get<{
-          success: true;
-          data: {
-            query: Query;
-            responses: QueryResponse[];
-          };
-        }>(`/queries/${params.id}`);
-
-        setQuery(result.data.data.query);
-        setResponses(result.data.data.responses);
-      } catch (loadError) {
-        console.error(loadError);
-        setError("Failed to load the response.");
-      } finally {
-        setFetching(false);
-      }
+  async function loadQuery() {
+    if (!params.id || !appUser) {
+      return;
     }
 
+    setFetching(true);
+    setError(null);
+
+    try {
+      const result = await apiClient.get<{
+        success: true;
+        data: {
+          query: Query;
+          responses: QueryResponse[];
+          escalation: Escalation | null;
+        };
+      }>(`/queries/${params.id}`);
+
+      setQuery(result.data.data.query);
+      setResponses(result.data.data.responses);
+      setEscalation(result.data.data.escalation);
+    } catch (loadError) {
+      console.error(loadError);
+      setError("Failed to load the response.");
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  useEffect(() => {
     void loadQuery();
   }, [appUser, params.id]);
 
@@ -96,6 +104,38 @@ export default function FarmerResponsePage() {
     return queryTypeMeta[query.type];
   }, [query]);
   const QueryIcon = meta.icon;
+
+  async function sendFeedback(rating: "helpful" | "not_helpful") {
+    if (!query || !latestResponse) {
+      return;
+    }
+
+    setFeedbackLoading(true);
+    setError(null);
+
+    try {
+      const result = await apiClient.post<{
+        success: true;
+        data: {
+          escalation: Escalation | null;
+        };
+      }>(`/queries/${query.queryId}/feedback`, {
+        rating,
+        responseId: latestResponse.responseId
+      });
+
+      setFeedbackState(rating);
+      if (result.data.data.escalation) {
+        setEscalation(result.data.data.escalation);
+      }
+      await loadQuery();
+    } catch (feedbackError) {
+      console.error(feedbackError);
+      setError("Failed to submit feedback.");
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }
 
   if (loading || !appUser || fetching) {
     return (
@@ -113,7 +153,7 @@ export default function FarmerResponsePage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to {meta.label.toLowerCase()}
           </a>
           <div className="inline-flex items-center rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-[12px] font-medium uppercase tracking-[0.22em] text-[#2E7D32]">
-            <Sparkles className="mr-2 h-4 w-4" /> AI response ready
+            <Sparkles className="mr-2 h-4 w-4" /> {escalation ? "Escalated advisory" : "AI response ready"}
           </div>
         </div>
       </section>
@@ -133,10 +173,7 @@ export default function FarmerResponsePage() {
               <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#2E7D32]">
                 <Leaf className="h-4 w-4" /> Query summary
               </div>
-              <h1
-                className="mt-4 text-[36px] font-bold leading-[1.06] tracking-[-1.2px] md:text-[48px]"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
+              <h1 className="mt-4 text-[36px] font-bold leading-[1.06] tracking-[-1.2px] md:text-[48px]" style={{ fontFamily: "var(--font-display)" }}>
                 Your Advisory Has Been Generated.
               </h1>
               <p className="mt-4 text-sm leading-7 text-[#6B7280]">
@@ -150,6 +187,11 @@ export default function FarmerResponsePage() {
                 {query?.confidence ? (
                   <div className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-xs font-semibold text-[#2E7D32]">
                     Confidence {query.confidence}%
+                  </div>
+                ) : null}
+                {escalation ? (
+                  <div className="inline-flex items-center rounded-full border border-[#FFE0B2] bg-[#FFF3E0] px-4 py-2 text-xs font-semibold text-[#C2410C]">
+                    <Clock3 className="mr-2 h-4 w-4" /> Officer review {escalation.status.replace("_", " ")}
                   </div>
                 ) : null}
               </div>
@@ -184,19 +226,11 @@ export default function FarmerResponsePage() {
             </div>
           </div>
 
-          <motion.div
-            className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-[0_30px_70px_rgba(10,10,10,0.08)] md:p-8"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+          <motion.div className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-[0_30px_70px_rgba(10,10,10,0.08)] md:p-8" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="text-[12px] uppercase tracking-[0.24em] text-[#6B7280]">Advice</div>
-                <h2
-                  className="mt-3 text-[34px] font-bold leading-[1.08] tracking-[-1px]"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
+                <h2 className="mt-3 text-[34px] font-bold leading-[1.08] tracking-[-1px]" style={{ fontFamily: "var(--font-display)" }}>
                   Field-ready recommendations.
                 </h2>
               </div>
@@ -207,26 +241,45 @@ export default function FarmerResponsePage() {
                   </div>
                 ) : null}
                 <div className="rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#6B7280]">
-                  Source {latestResponse?.generatedBy ?? "unknown"}
+                  Source {latestResponse?.type === "officer" ? latestResponse.officerName ?? "officer" : latestResponse?.generatedBy ?? "unknown"}
                 </div>
               </div>
             </div>
 
-            {error ? (
-              <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+            {error ? <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+
+            <div className="mt-6 rounded-[28px] border border-[#E5E7EB] bg-[#FCFCFB] p-5 md:p-6">
+              <p className="whitespace-pre-line text-[15px] leading-8 text-[#0A0A0A]">{latestResponse?.content ?? "No response yet."}</p>
+            </div>
+
+            {latestResponse?.type !== "officer" ? (
+              <div className="mt-6 rounded-[24px] border border-[#E5E7EB] bg-white p-5">
+                <div className="text-sm font-semibold text-[#0A0A0A]">Was this helpful?</div>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <button className="inline-flex h-12 items-center justify-center rounded-full border border-[#E5E7EB] px-5 text-sm font-semibold text-[#0A0A0A] disabled:cursor-not-allowed disabled:opacity-60" disabled={feedbackLoading} onClick={() => { void sendFeedback("helpful"); }} type="button">
+                    <ThumbsUp className="mr-2 h-4 w-4" /> {feedbackState === "helpful" ? "Marked helpful" : "Helpful"}
+                  </button>
+                  <button className="inline-flex h-12 items-center justify-center rounded-full bg-[#0A0A0A] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#9CA3AF]" disabled={feedbackLoading || Boolean(escalation)} onClick={() => { void sendFeedback("not_helpful"); }} type="button">
+                    <ThumbsDown className="mr-2 h-4 w-4" /> {escalation ? "Officer review requested" : "Need officer review"}
+                  </button>
+                </div>
               </div>
             ) : null}
 
-            <div className="mt-6 rounded-[28px] border border-[#E5E7EB] bg-[#FCFCFB] p-5 md:p-6">
-              <p className="whitespace-pre-line text-[15px] leading-8 text-[#0A0A0A]">
-                {latestResponse?.content ?? "No response yet."}
-              </p>
-            </div>
+            {escalation ? (
+              <div className="mt-6 rounded-[24px] border border-[#FFE0B2] bg-[#FFF8F1] p-5">
+                <div className="text-[12px] uppercase tracking-[0.22em] text-[#C2410C]">Escalation status</div>
+                <p className="mt-3 text-sm leading-7 text-[#7C2D12]">
+                  Your query has been sent to an agricultural officer for human review. Status: <span className="font-semibold">{escalation.status.replace("_", " ")}</span>.
+                </p>
+              </div>
+            ) : null}
 
             <div className="mt-6 grid gap-3 text-sm text-[#6B7280]">
               {[
-                "Use this response as initial guidance, not a pesticide prescription.",
+                latestResponse?.type === "officer"
+                  ? "This answer was provided by a human officer after reviewing your case."
+                  : "Use this response as initial guidance, not a pesticide prescription.",
                 "For rapidly spreading disease or crop loss, escalate to a human agricultural officer.",
                 query?.type === "voice"
                   ? "Replay the audio and verify the transcript if the symptom wording looks off."

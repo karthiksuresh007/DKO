@@ -60,5 +60,27 @@ export const responsesRepository = {
 
     const saved = await reference.get();
     return serializeDocument<Response>(saved.id, saved.data() ?? {});
+  },
+
+  async createOfficerResponse(input: {
+    queryId: string;
+    content: string;
+    officerId: string;
+    officerName?: string;
+  }) {
+    const reference = responsesCollection.doc();
+    await reference.set({
+      responseId: reference.id,
+      queryId: input.queryId,
+      type: "officer",
+      content: input.content,
+      officerId: input.officerId,
+      officerName: input.officerName ?? null,
+      audioUrl: null,
+      createdAt: FieldValue.serverTimestamp()
+    });
+
+    const saved = await reference.get();
+    return serializeDocument<Response>(saved.id, saved.data() ?? {});
   }
 };

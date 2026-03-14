@@ -67,6 +67,9 @@ export interface Escalation {
   responseId?: string | null;
   createdAt: string;
   resolvedAt?: string;
+  farmerName?: string;
+  officerName?: string;
+  queryPreview?: string;
 }
 
 export interface Feedback {
@@ -91,4 +94,3 @@ export interface ApiError {
     message: string;
   };
 }
-

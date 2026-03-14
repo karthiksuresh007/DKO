@@ -23,6 +23,7 @@ interface MarkAnsweredInput {
   transcribedText?: string;
   detectedDisease?: string;
   diseaseConfidence?: number;
+  status?: QueryStatus;
 }
 
 const queriesCollection = adminDb.collection("queries");
@@ -65,17 +66,49 @@ export const queriesRepository = {
   },
 
   async markAnswered(queryId: string, input: MarkAnsweredInput) {
+    const status = input.status ?? "answered";
     const reference = queriesCollection.doc(queryId);
     await reference.set(
       {
-        status: "answered",
+        status,
         latestResponse: input.latestResponse,
         confidence: input.confidence,
         aiResponseAudioUrl: input.aiResponseAudioUrl ?? null,
         transcribedText: input.transcribedText ?? FieldValue.delete(),
         detectedDisease: input.detectedDisease ?? FieldValue.delete(),
         diseaseConfidence: input.diseaseConfidence ?? FieldValue.delete(),
-        answeredAt: FieldValue.serverTimestamp()
+        answeredAt: FieldValue.serverTimestamp(),
+        escalatedAt: status === "escalated" ? FieldValue.serverTimestamp() : FieldValue.delete(),
+        resolvedAt: status === "resolved" ? FieldValue.serverTimestamp() : FieldValue.delete()
+      },
+      { merge: true }
+    );
+
+    const snapshot = await reference.get();
+    return serializeDocument<Query>(snapshot.id, snapshot.data() ?? {});
+  },
+
+  async markEscalated(queryId: string) {
+    const reference = queriesCollection.doc(queryId);
+    await reference.set(
+      {
+        status: "escalated",
+        escalatedAt: FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    const snapshot = await reference.get();
+    return serializeDocument<Query>(snapshot.id, snapshot.data() ?? {});
+  },
+
+  async markResolved(queryId: string, latestResponse?: string) {
+    const reference = queriesCollection.doc(queryId);
+    await reference.set(
+      {
+        status: "resolved",
+        latestResponse: latestResponse ?? FieldValue.delete(),
+        resolvedAt: FieldValue.serverTimestamp()
       },
       { merge: true }
     );

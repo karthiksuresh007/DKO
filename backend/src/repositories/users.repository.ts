@@ -12,6 +12,23 @@ interface UpsertOptions {
 
 const usersCollection = adminDb.collection("users");
 
+function inferRoleFromEmail(email?: string | null) {
+  if (!email) {
+    return "farmer" as const;
+  }
+
+  const normalized = email.toLowerCase();
+  if (normalized.startsWith("admin@") || normalized.includes("+admin@")) {
+    return "admin" as const;
+  }
+
+  if (normalized.startsWith("officer@") || normalized.includes("+officer@") || normalized.includes("officer")) {
+    return "officer" as const;
+  }
+
+  return "farmer" as const;
+}
+
 export const usersRepository = {
   async findById(userId: string) {
     const snapshot = await usersCollection.doc(userId).get();
@@ -42,7 +59,7 @@ export const usersRepository = {
         decoded.email ||
         (typeof existing.email === "string" ? existing.email : undefined) ||
         null,
-      role: existing.role || "farmer",
+      role: existing.role || inferRoleFromEmail(decoded.email),
       region:
         input.region ||
         (typeof existing.region === "string" ? existing.region : undefined) ||

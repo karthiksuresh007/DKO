@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env.js";
 import { authRouter } from "./routes/auth.routes.js";
+import { escalationRouter } from "./routes/escalation.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { queryRouter } from "./routes/query.routes.js";
 import { uploadRouter } from "./routes/upload.routes.js";
@@ -25,7 +26,7 @@ export function createApp() {
   app.get("/", (_request, response) => {
     response.json({
       service: "Digital Krishi Officer API",
-      version: "0.2.0",
+      version: "0.3.0",
       docs: "/health"
     });
   });
@@ -34,6 +35,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/upload", uploadRouter);
   app.use("/api/queries", queryRouter);
+  app.use("/api/escalations", escalationRouter);
 
   app.use((request, response) => {
     response.status(404).json({
