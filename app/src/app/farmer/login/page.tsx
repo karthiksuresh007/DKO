@@ -151,7 +151,7 @@ export default function FarmerLoginPage() {
                     <input
                       className="mt-2 h-14 w-full rounded-[20px] border border-[#E5E7EB] bg-[#FCFCFB] px-4 text-base outline-none transition focus:border-[#2E7D32]"
                       onChange={(event) => setName(event.target.value)}
-                      placeholder="Karthik Suresh"
+                      placeholder="full name"
                       value={name}
                     />
                   </label>
@@ -208,7 +208,7 @@ export default function FarmerLoginPage() {
               <div className="mt-6 flex items-center justify-between gap-4 text-sm text-[#6B7280]">
                 <div className="inline-flex items-center gap-2">
                   <Sprout className="h-4 w-4 text-[#2E7D32]" />
-                  Authenticated by Firebase, verified by backend.
+                  Authenticated by Firebase.
                 </div>
                 <a className="font-semibold text-[#0A0A0A]" href="/dashboard/login">
                   Officer login
