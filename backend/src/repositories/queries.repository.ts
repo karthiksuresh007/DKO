@@ -16,6 +16,15 @@ interface CreateQueryInput {
   status?: QueryStatus;
 }
 
+interface MarkAnsweredInput {
+  latestResponse: string;
+  confidence: number;
+  aiResponseAudioUrl?: string | null;
+  transcribedText?: string;
+  detectedDisease?: string;
+  diseaseConfidence?: number;
+}
+
 const queriesCollection = adminDb.collection("queries");
 
 function sortByCreatedAtDescending(items: Query[]) {
@@ -55,7 +64,7 @@ export const queriesRepository = {
     return serializeDocument<Query>(snapshot.id, snapshot.data() ?? {});
   },
 
-  async markAnswered(queryId: string, input: { latestResponse: string; confidence: number; aiResponseAudioUrl?: string | null }) {
+  async markAnswered(queryId: string, input: MarkAnsweredInput) {
     const reference = queriesCollection.doc(queryId);
     await reference.set(
       {
@@ -63,6 +72,9 @@ export const queriesRepository = {
         latestResponse: input.latestResponse,
         confidence: input.confidence,
         aiResponseAudioUrl: input.aiResponseAudioUrl ?? null,
+        transcribedText: input.transcribedText ?? FieldValue.delete(),
+        detectedDisease: input.detectedDisease ?? FieldValue.delete(),
+        diseaseConfidence: input.diseaseConfidence ?? FieldValue.delete(),
         answeredAt: FieldValue.serverTimestamp()
       },
       { merge: true }

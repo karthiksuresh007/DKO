@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { responsesRepository } from "../repositories/responses.repository.js";
 import { queriesRepository } from "../repositories/queries.repository.js";
-import { processTextQuery } from "../services/ai/text-query.service.js";
+import { processImageQuery, processTextQuery, processVoiceQuery } from "../services/ai/text-query.service.js";
 import { sendError, sendSuccess } from "../utils/http.js";
 
 function isAllowedToView(requestUserId: string, requestRole: string, ownerId: string) {
@@ -13,11 +13,13 @@ export async function createQuery(request: Request, response: Response) {
     return sendError(response, 401, "UNAUTHORIZED", "Authentication required.");
   }
 
-  const { type, content, audioUrl, imageUrl, description } = request.body as {
+  const { type, content, audioUrl, audioMimeType, imageUrl, imageMimeType, description } = request.body as {
     type?: "text" | "voice" | "image";
     content?: string;
     audioUrl?: string;
+    audioMimeType?: string;
     imageUrl?: string;
+    imageMimeType?: string;
     description?: string;
   };
 
@@ -61,6 +63,71 @@ export async function createQuery(request: Request, response: Response) {
       latestResponse: textResult.content,
       confidence: textResult.confidence,
       aiResponseAudioUrl: null
+    });
+
+    return sendSuccess(
+      response,
+      {
+        query: updatedQuery,
+        response: savedResponse
+      },
+      201
+    );
+  }
+
+  if (type === "voice" && audioUrl) {
+    const voiceResult = await processVoiceQuery({
+      audioUrl,
+      audioMimeType,
+      description: description?.trim()
+    });
+
+    const savedResponse = await responsesRepository.createAiResponse({
+      queryId: query.queryId,
+      content: voiceResult.content,
+      generatedBy: voiceResult.modelUsed,
+      confidence: voiceResult.confidence,
+      audioUrl: null
+    });
+
+    const updatedQuery = await queriesRepository.markAnswered(query.queryId, {
+      latestResponse: voiceResult.content,
+      confidence: voiceResult.confidence,
+      aiResponseAudioUrl: null,
+      transcribedText: voiceResult.transcript
+    });
+
+    return sendSuccess(
+      response,
+      {
+        query: updatedQuery,
+        response: savedResponse
+      },
+      201
+    );
+  }
+
+  if (type === "image" && imageUrl) {
+    const imageResult = await processImageQuery({
+      imageUrl,
+      imageMimeType,
+      description: description?.trim()
+    });
+
+    const savedResponse = await responsesRepository.createAiResponse({
+      queryId: query.queryId,
+      content: imageResult.content,
+      generatedBy: imageResult.modelUsed,
+      confidence: imageResult.confidence,
+      audioUrl: null
+    });
+
+    const updatedQuery = await queriesRepository.markAnswered(query.queryId, {
+      latestResponse: imageResult.content,
+      confidence: imageResult.confidence,
+      aiResponseAudioUrl: null,
+      detectedDisease: imageResult.detectedIssue,
+      diseaseConfidence: imageResult.confidence
     });
 
     return sendSuccess(

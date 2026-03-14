@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
@@ -16,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap'); :root { --font-display: 'Playfair Display', serif; --font-body: 'DM Sans', sans-serif; } body { font-family: var(--font-body); }`}</style>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

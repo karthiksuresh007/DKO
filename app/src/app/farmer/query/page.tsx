@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,23 +15,26 @@ const queryModes = [
     description: "Ask about diseases, nutrient issues, irrigation, or treatment steps and get a structured answer instantly.",
     href: "/farmer/query/text",
     icon: MessageSquareText,
-    active: true
+    status: "Live now",
+    accent: "dark"
   },
   {
     title: "Voice Advisory",
-    description: "Voice-first query capture for field use. The premium UI is ready and the processing flow is next in line.",
-    href: "#",
+    description: "Record or upload a field note, let Gemini interpret it, and get practical next steps from spoken context.",
+    href: "/farmer/query/voice",
     icon: Mic,
-    active: false
+    status: "Voice AI live",
+    accent: "light"
   },
   {
     title: "Image Advisory",
-    description: "Capture crop images for disease analysis and treatment guidance. The upload pipeline is the next milestone.",
-    href: "#",
+    description: "Upload a crop photo, add a short note, and receive a visual diagnosis summary with treatment guidance.",
+    href: "/farmer/query/image",
     icon: Camera,
-    active: false
+    status: "Image AI live",
+    accent: "light"
   }
-];
+] as const;
 
 export default function FarmerQueryPage() {
   const router = useRouter();
@@ -66,20 +69,20 @@ export default function FarmerQueryPage() {
               className="mt-4 max-w-[620px] text-[42px] font-bold leading-[1.03] tracking-[-1.5px] md:text-[60px]"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Choose How You Want To Ask For Advice.
+              Choose The Best Input For Your Field Situation.
             </h1>
             <p className="mt-5 max-w-[560px] text-base leading-8 text-[#6B7280]">
-              Your session is active and your advisory history is tied to this account. Start with the text flow today, then extend into voice and image once those pipelines are enabled.
+              Type, speak, or upload a crop image. Every query runs through the same advisory pipeline and opens in the premium response view with confidence, context, and next actions.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3 text-sm">
               <span className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[#6B7280]">Email verified</span>
               <span className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[#6B7280]">Backend synced</span>
-              <span className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-[#2E7D32]">Text AI live</span>
+              <span className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-[#2E7D32]">Text, voice, image live</span>
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[32px] min-h-[320px]">
+          <div className="relative min-h-[320px] overflow-hidden rounded-[32px]">
             <div
               className="absolute inset-0"
               style={{
@@ -95,6 +98,18 @@ export default function FarmerQueryPage() {
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-white/70">Signed in as</p>
                 <p className="mt-3 text-2xl font-semibold">{appUser.email ?? appUser.userId}</p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  {[
+                    ["Text", "Fast symptom Q&A"],
+                    ["Voice", "Hands-free field input"],
+                    ["Image", "Visual crop check"]
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-2xl border border-white/15 bg-black/20 px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-white/60">{label}</div>
+                      <div className="mt-2 text-sm font-semibold text-white">{value}</div>
+                    </div>
+                  ))}
+                </div>
                 <button
                   className="mt-6 inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
                   onClick={() => {
@@ -116,42 +131,38 @@ export default function FarmerQueryPage() {
         <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-3">
           {queryModes.map((mode, index) => {
             const Icon = mode.icon;
-            const cardBody = (
-              <motion.div
-                className={`flex h-full flex-col rounded-[32px] border p-6 md:p-7 ${mode.active ? "border-[#0A0A0A] bg-[#0A0A0A] text-white" : "border-[#E5E7EB] bg-white text-[#0A0A0A]"}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: index * 0.08 }}
-                whileHover={{ y: -4, scale: 1.01 }}
-              >
-                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${mode.active ? "bg-white/12 text-white" : "bg-[#F1F8E9] text-[#2E7D32]"}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="mt-8 text-[12px] uppercase tracking-[0.24em] text-inherit opacity-60">
-                  {mode.active ? "Live now" : "Coming next"}
-                </div>
-                <h2
-                  className="mt-3 text-[30px] font-bold leading-[1.08] tracking-[-1px]"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {mode.title}
-                </h2>
-                <p className={`mt-4 flex-1 text-sm leading-7 ${mode.active ? "text-white/78" : "text-[#6B7280]"}`}>
-                  {mode.description}
-                </p>
-                <div className="mt-8 inline-flex items-center text-sm font-semibold">
-                  {mode.active ? "Open flow" : "Reserved for Day 4"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </div>
-              </motion.div>
-            );
+            const dark = mode.accent === "dark";
 
-            return mode.active ? (
+            return (
               <a key={mode.title} href={mode.href}>
-                {cardBody}
+                <motion.div
+                  className={`flex h-full flex-col rounded-[32px] border p-6 md:p-7 ${dark ? "border-[#0A0A0A] bg-[#0A0A0A] text-white" : "border-[#E5E7EB] bg-white text-[#0A0A0A]"}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                >
+                  <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${dark ? "bg-white/12 text-white" : "bg-[#F1F8E9] text-[#2E7D32]"}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className={`mt-8 inline-flex w-fit rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.24em] ${dark ? "border-white/15 text-white/70" : "border-[#E5E7EB] text-[#6B7280]"}`}>
+                    {mode.status}
+                  </div>
+                  <h2
+                    className="mt-3 text-[30px] font-bold leading-[1.08] tracking-[-1px]"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {mode.title}
+                  </h2>
+                  <p className={`mt-4 flex-1 text-sm leading-7 ${dark ? "text-white/78" : "text-[#6B7280]"}`}>
+                    {mode.description}
+                  </p>
+                  <div className="mt-8 inline-flex items-center text-sm font-semibold">
+                    Open flow
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </div>
+                </motion.div>
               </a>
-            ) : (
-              <div key={mode.title}>{cardBody}</div>
             );
           })}
         </div>

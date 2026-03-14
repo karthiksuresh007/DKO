@@ -32,7 +32,7 @@ export async function uploadAudio(request: Request, response: Response) {
     fileNamePrefix: "voice"
   });
 
-  return sendSuccess(response, upload, 201);
+  return sendSuccess(response, { ...upload, mimeType: request.file.mimetype }, 201);
 }
 
 export async function uploadImage(request: Request, response: Response) {
@@ -57,5 +57,5 @@ export async function uploadImage(request: Request, response: Response) {
     fileNamePrefix: "image"
   });
 
-  return sendSuccess(response, upload, 201);
+  return sendSuccess(response, { ...upload, mimeType: request.file.mimetype }, 201);
 }

@@ -1,15 +1,45 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Query, Response as QueryResponse } from "@dko/shared";
-import { ArrowLeft, ArrowRight, CheckCircle2, Leaf, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  CheckCircle2,
+  Leaf,
+  MessageSquareText,
+  Mic,
+  Sparkles
+} from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { apiClient } from "@/lib/api";
 
 const responseImage =
-  "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&q=80&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80&auto=format&fit=crop";
+
+const queryTypeMeta = {
+  text: {
+    label: "Text advisory",
+    askHref: "/farmer/query/text",
+    askLabel: "Ask Another Text Question",
+    icon: MessageSquareText
+  },
+  voice: {
+    label: "Voice advisory",
+    askHref: "/farmer/query/voice",
+    askLabel: "Send Another Voice Note",
+    icon: Mic
+  },
+  image: {
+    label: "Image advisory",
+    askHref: "/farmer/query/image",
+    askLabel: "Analyze Another Image",
+    icon: Camera
+  }
+} as const;
 
 export default function FarmerResponsePage() {
   const params = useParams<{ id: string }>();
@@ -57,6 +87,16 @@ export default function FarmerResponsePage() {
     void loadQuery();
   }, [appUser, params.id]);
 
+  const latestResponse = responses[responses.length - 1];
+  const meta = useMemo(() => {
+    if (!query) {
+      return queryTypeMeta.text;
+    }
+
+    return queryTypeMeta[query.type];
+  }, [query]);
+  const QueryIcon = meta.icon;
+
   if (loading || !appUser || fetching) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white px-5 text-center text-[#6B7280]">
@@ -65,14 +105,12 @@ export default function FarmerResponsePage() {
     );
   }
 
-  const latestResponse = responses[responses.length - 1];
-
   return (
     <main className="min-h-screen bg-white text-[#0A0A0A]">
       <section className="border-b border-[#E5E7EB] px-5 py-8 md:px-8 md:py-10">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4">
-          <a className="inline-flex items-center text-sm font-semibold text-[#0A0A0A]" href="/farmer/query/text">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Ask another question
+          <a className="inline-flex items-center text-sm font-semibold text-[#0A0A0A]" href={meta.askHref}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to {meta.label.toLowerCase()}
           </a>
           <div className="inline-flex items-center rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-[12px] font-medium uppercase tracking-[0.22em] text-[#2E7D32]">
             <Sparkles className="mr-2 h-4 w-4" /> AI response ready
@@ -86,7 +124,7 @@ export default function FarmerResponsePage() {
             <div
               className="h-[220px] w-full"
               style={{
-                backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.08) 0%, rgba(10,10,10,0.52) 100%), url('${responseImage}')`,
+                backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.08) 0%, rgba(10,10,10,0.52) 100%), url('${query?.imageUrl ?? responseImage}')`,
                 backgroundSize: "cover",
                 backgroundPosition: "center"
               }}
@@ -102,13 +140,47 @@ export default function FarmerResponsePage() {
                 Your Advisory Has Been Generated.
               </h1>
               <p className="mt-4 text-sm leading-7 text-[#6B7280]">
-                Review the original question, read the recommended actions, and continue with another prompt if you need a second answer.
+                Review the input, the interpreted context, and the recommended actions before taking the next step in the field.
               </p>
 
-              <div className="mt-8 rounded-[24px] bg-[#F9FAFB] p-5">
-                <div className="text-[12px] uppercase tracking-[0.22em] text-[#6B7280]">Original question</div>
-                <p className="mt-3 text-sm leading-7 text-[#0A0A0A]">{query?.content}</p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <div className="inline-flex items-center rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#6B7280]">
+                  <QueryIcon className="mr-2 h-4 w-4" /> {meta.label}
+                </div>
+                {query?.confidence ? (
+                  <div className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-xs font-semibold text-[#2E7D32]">
+                    Confidence {query.confidence}%
+                  </div>
+                ) : null}
               </div>
+
+              {query?.type === "text" ? (
+                <div className="mt-8 rounded-[24px] bg-[#F9FAFB] p-5">
+                  <div className="text-[12px] uppercase tracking-[0.22em] text-[#6B7280]">Original question</div>
+                  <p className="mt-3 text-sm leading-7 text-[#0A0A0A]">{query.content}</p>
+                </div>
+              ) : null}
+
+              {query?.type === "voice" ? (
+                <div className="mt-8 space-y-4">
+                  {query.audioUrl ? <audio className="w-full" controls src={query.audioUrl} /> : null}
+                  <div className="rounded-[24px] bg-[#F9FAFB] p-5">
+                    <div className="text-[12px] uppercase tracking-[0.22em] text-[#6B7280]">Transcript</div>
+                    <p className="mt-3 text-sm leading-7 text-[#0A0A0A]">{query.transcribedText ?? query.description ?? "Transcript unavailable."}</p>
+                  </div>
+                </div>
+              ) : null}
+
+              {query?.type === "image" ? (
+                <div className="mt-8 space-y-4">
+                  {query.imageUrl ? <img alt="Uploaded crop" className="h-[220px] w-full rounded-[24px] object-cover" src={query.imageUrl} /> : null}
+                  <div className="rounded-[24px] bg-[#F9FAFB] p-5">
+                    <div className="text-[12px] uppercase tracking-[0.22em] text-[#6B7280]">Detected issue</div>
+                    <p className="mt-3 text-sm leading-7 text-[#0A0A0A]">{query.detectedDisease ?? "Visible crop stress"}</p>
+                    {query.description ? <p className="mt-3 text-sm leading-7 text-[#6B7280]">Farmer note: {query.description}</p> : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -156,7 +228,11 @@ export default function FarmerResponsePage() {
               {[
                 "Use this response as initial guidance, not a pesticide prescription.",
                 "For rapidly spreading disease or crop loss, escalate to a human agricultural officer.",
-                "Ask a follow-up with more detail if symptoms change after treatment."
+                query?.type === "voice"
+                  ? "Replay the audio and verify the transcript if the symptom wording looks off."
+                  : query?.type === "image"
+                    ? "Upload one close-up and one full-plant image if you need a stronger follow-up diagnosis."
+                    : "Ask a follow-up with more detail if symptoms change after treatment."
               ].map((line) => (
                 <div key={line} className="inline-flex items-start gap-3 rounded-2xl bg-[#F9FAFB] px-4 py-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2E7D32]" />
@@ -166,8 +242,8 @@ export default function FarmerResponsePage() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a className="inline-flex h-12 items-center justify-center rounded-full bg-[#0A0A0A] px-6 text-base font-semibold text-white" href="/farmer/query/text">
-                Ask Another Question <ArrowRight className="ml-2 h-4 w-4" />
+              <a className="inline-flex h-12 items-center justify-center rounded-full bg-[#0A0A0A] px-6 text-base font-semibold text-white" href={meta.askHref}>
+                {meta.askLabel} <ArrowRight className="ml-2 h-4 w-4" />
               </a>
               <a className="inline-flex h-12 items-center justify-center rounded-full border border-[#E5E7EB] px-6 text-base font-semibold text-[#0A0A0A]" href="/farmer/query">
                 Back to Workspace

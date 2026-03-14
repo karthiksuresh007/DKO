@@ -18,3 +18,14 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+export async function uploadFile<T>(route: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiClient.post<T>(route, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+}
