@@ -76,101 +76,116 @@ const solutions = [
 
 export default function LandingPage() {
   return (
-    <>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
-
-        :root {
-          --font-display: 'Playfair Display', serif;
-          --font-body: 'DM Sans', sans-serif;
-        }
-
-        html {
-          scroll-behavior: smooth;
-        }
-
-        body {
-          font-family: var(--font-body);
-          background: #ffffff;
-          color: #0a0a0a;
-        }
-      `}</style>
-      <main className="relative bg-white text-[#0A0A0A]">
-        <NavigationBar />
-        <HeroSection />
-        <HeroPhotoPanel />
-        <StatsBar />
-        <EditorialStatementSection />
-        <ProductCarouselSection />
-        <DarkBannerSection />
-        <FeaturesSection />
-        <GameChangerSection />
-        <EmailCaptureBanner />
-        <FooterSection />
-      </main>
-    </>
+    <main className="relative bg-white text-[#0A0A0A]">
+      <NavigationBar />
+      <HeroSection />
+      <HeroPhotoPanel />
+      <StatsBar />
+      <EditorialStatementSection />
+      <ProductCarouselSection />
+      <DarkBannerSection />
+      <FeaturesSection />
+      <GameChangerSection />
+      <EmailCaptureBanner />
+      <FooterSection />
+    </main>
   );
 }
-
 function NavigationBar() {
   return (
-    <header className="sticky top-0 z-50 h-16 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
-      <div className="mx-auto grid h-full max-w-[1440px] grid-cols-[1fr_auto] items-center gap-6 px-4 md:grid-cols-[1fr_auto_1fr] md:px-8">
-        <a className="flex items-center gap-2" href="#home">
-          <Leaf className="h-5 w-5 text-[#2E7D32]" />
-          <span className="text-base font-bold tracking-tight text-[#0A0A0A]">DKO</span>
-        </a>
-
-        <div className="hidden items-center justify-center md:flex">
-          <div className="flex flex-col items-center gap-2">
-            <span className="rounded-full border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-1 text-[11px] font-medium text-[#6B7280]">
-              Top Notch Webinar Platform
-            </span>
-            <nav className="flex items-center gap-6 text-sm text-[#6B7280]">
-              {navLinks.map((link, index) => (
-                <a
-                  key={link.label}
-                  className={`transition hover:text-[#0A0A0A] ${index === 0 ? "font-medium text-[#0A0A0A]" : ""}`}
-                  href={link.href}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-4 justify-self-end">
-          <a className="hidden text-sm text-[#6B7280] transition hover:text-[#0A0A0A] sm:inline-flex" href="/farmer/login">
-            Sign In
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid grid-cols-[auto_1fr] items-center gap-4 rounded-[28px] border border-black/6 bg-white/78 px-4 py-3 shadow-[0_12px_40px_rgba(10,10,10,0.08)] backdrop-blur-xl md:grid-cols-[auto_1fr_auto] md:px-5">
+          <a className="flex items-center gap-2.5" href="#home">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F8E9] ring-1 ring-[#C8E6C9]">
+              <Leaf className="h-4.5 w-4.5 text-[#2E7D32]" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[15px] font-bold tracking-tight text-[#0A0A0A]">DKO</div>
+              <div className="hidden text-[11px] font-medium text-[#6B7280] sm:block">
+                AI Advisory for Farmers
+              </div>
+            </div>
           </a>
-          <motion.a
-            className="inline-flex h-9 items-center rounded-full bg-[#0A0A0A] px-4 text-sm font-medium text-white"
-            href="/farmer/login"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Sign Up Free <ArrowRight className="ml-1 h-4 w-4" />
-          </motion.a>
+
+          <div className="hidden items-center justify-center md:flex">
+            <div className="flex flex-col items-center gap-2">
+             
+              <nav className="flex items-center gap-1 rounded-full border border-black/5 bg-[#F6F7F6]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+                {navLinks.map((link, index) => (
+                  <a
+                    key={link.label}
+                    className={`rounded-full px-4 py-2 text-sm transition-all duration-200 ${
+                      index === 0
+                        ? "bg-white font-medium text-[#0A0A0A] shadow-[0_6px_14px_rgba(10,10,10,0.06)]"
+                        : "text-[#6B7280] hover:bg-white/80 hover:text-[#0A0A0A]"
+                    }`}
+                    href={link.href}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3">
+            <a
+              className="hidden rounded-full px-3 py-2 text-sm font-medium text-[#6B7280] transition-colors duration-200 hover:text-[#0A0A0A] sm:inline-flex"
+              href="/farmer/login"
+            >
+              Sign In
+            </a>
+            <motion.a
+              className="inline-flex h-10 items-center rounded-full bg-[#0A0A0A] px-4 text-sm font-medium text-white shadow-[0_10px_28px_rgba(10,10,10,0.12)] transition-shadow duration-300"
+              href="/farmer/login"
+              whileHover={{ y: -2, boxShadow: "0 16px 34px rgba(10,10,10,0.18)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Sign Up Free <ArrowRight className="ml-1.5 h-4 w-4" />
+            </motion.a>
+          </div>
         </div>
       </div>
     </header>
   );
 }
-
 function HeroSection() {
   const heroLines = ["Bring Fresh Growth", "To Agriculture."];
+  const { scrollY } = useScroll();
+  const glowY = useTransform(scrollY, [0, 500], [0, 24]);
+  const gridY = useTransform(scrollY, [0, 500], [0, 12]);
+  const accentY = useTransform(scrollY, [0, 500], [0, -18]);
+  const proofPoints = ["Text Advisory", "Voice First", "Image Diagnosis"];
 
   return (
-    <section className="relative overflow-hidden bg-white px-4 py-20 md:px-8 md:py-28" id="home">
+    <section className="relative overflow-hidden bg-white px-4 py-20 md:px-8 md:py-32" id="home">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#FFFFFF_0%,#F7FAF6_100%)]" />
+      <motion.div className="absolute inset-0" style={{ y: gridY }}>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(10,10,10,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(10,10,10,0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(circle_at_center,black,transparent_82%)]" />
+      </motion.div>
+      <motion.div
+        className="absolute left-1/2 top-8 h-72 w-72 -translate-x-1/2 rounded-full bg-[#2E7D32]/10 blur-[110px] md:h-96 md:w-96"
+        style={{ y: glowY }}
+      />
+      <motion.div
+        className="absolute -left-16 top-24 h-72 w-72 rounded-full bg-[#0A0A0A]/[0.05] blur-[120px]"
+        style={{ y: accentY }}
+      />
+      <motion.div
+        className="absolute right-[-72px] top-10 h-80 w-80 rounded-full bg-white/90 blur-[120px]"
+        style={{ y: glowY }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(46,125,50,0.08),transparent_30%)]" />
+
       <DecorativePlus className="left-[8%] top-12 hidden md:block" />
       <DecorativePlus className="right-[12%] top-24 hidden md:block" />
       <DecorativePlus className="bottom-24 left-[16%] hidden md:block" />
       <DecorativePlus className="bottom-16 right-[18%] hidden md:block" />
 
-      <div className="mx-auto flex min-h-[520px] max-w-6xl flex-col items-center justify-center text-center">
+      <div className="relative mx-auto flex min-h-[560px] max-w-6xl flex-col items-center justify-center text-center">
         <motion.div
-          className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9] px-4 py-2 text-[12px] font-medium text-[#2E7D32]"
+          className="rounded-full border border-[#C8E6C9] bg-[#F1F8E9]/85 px-4 py-2 text-[12px] font-medium text-[#2E7D32] backdrop-blur"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -182,7 +197,7 @@ function HeroSection() {
           {heroLines.map((line, index) => (
             <motion.h1
               key={line}
-              className="mx-auto max-w-[700px] text-[48px] font-bold leading-[1.05] tracking-[-1.5px] text-[#0A0A0A] md:text-[72px] md:tracking-[-2px]"
+              className="mx-auto max-w-[760px] text-[48px] font-bold leading-[1.05] tracking-[-1.5px] text-[#0A0A0A] md:text-[72px] md:tracking-[-2px]"
               style={{ fontFamily: "var(--font-display)" }}
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -194,7 +209,7 @@ function HeroSection() {
         </div>
 
         <motion.p
-          className="mx-auto mt-4 max-w-[480px] text-base leading-7 text-[#6B7280]"
+          className="mx-auto mt-4 max-w-[520px] text-base leading-7 text-[#6B7280]"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.35 }}
@@ -203,22 +218,51 @@ function HeroSection() {
           and professional insights.
         </motion.p>
 
-        <motion.a
-          className="mt-8 inline-flex h-12 items-center rounded-full bg-[#0A0A0A] px-6 text-base font-medium text-white shadow-[0_12px_30px_rgba(10,10,10,0.12)]"
-          href="/farmer/query/text"
-          whileHover={{ scale: 1.03, boxShadow: "0 18px 40px rgba(10,10,10,0.18)" }}
-          whileTap={{ scale: 0.98 }}
+        <motion.div
+          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          Get Started <ArrowRight className="ml-2 h-4 w-4" />
-        </motion.a>
+          <motion.a
+            className="group inline-flex h-12 items-center rounded-full bg-[#0A0A0A] px-6 text-base font-medium text-white shadow-[0_12px_30px_rgba(10,10,10,0.12)] transition-shadow duration-300"
+            href="/farmer/query/text"
+            whileHover={{ y: -2, boxShadow: "0 18px 40px rgba(10,10,10,0.18)" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Get Started
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </motion.a>
+
+          <motion.a
+            className="inline-flex h-12 items-center rounded-full border border-[#E5E7EB] bg-white/85 px-6 text-base font-medium text-[#0A0A0A] shadow-[0_10px_24px_rgba(10,10,10,0.04)] backdrop-blur transition-all duration-300 hover:border-[#D1D5DB] hover:bg-white"
+            href="/farmer/query"
+            whileHover={{ y: -2, boxShadow: "0 16px 34px rgba(10,10,10,0.08)" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Explore Product
+          </motion.a>
+        </motion.div>
+
+        <motion.div
+          className="mt-10 flex flex-wrap items-center justify-center gap-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.65 }}
+        >
+          {proofPoints.map((point) => (
+            <span
+              key={point}
+              className="rounded-full border border-[#E5E7EB] bg-white/70 px-4 py-2 text-[11px] uppercase tracking-[2px] text-[#6B7280] backdrop-blur"
+            >
+              {point}
+            </span>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
 }
-
 function HeroPhotoPanel() {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 900], [-20, 20]);
@@ -247,7 +291,6 @@ function HeroPhotoPanel() {
     </section>
   );
 }
-
 function StatsBar() {
   return (
     <section className="border-b border-[#E5E7EB] bg-white py-12" id="reviews">
@@ -514,7 +557,7 @@ function GameChangerSection() {
             </div>
             <div className="col-span-2 flex items-center justify-center rounded-3xl bg-black/10">
               <Camera className="mr-3 h-10 w-10" />
-              <span className="text-lg font-medium">Text · Voice · Image</span>
+              <span className="text-lg font-medium">Text / Voice / Image</span>
             </div>
           </div>
         </div>
@@ -640,7 +683,7 @@ function FooterSection() {
 
         <div className="mt-12 flex flex-col justify-between gap-4 border-t border-[#E5E7EB] pt-6 text-[13px] text-[#9CA3AF] md:flex-row md:items-center">
           <p>© 2026 Digital Krishi Officer. Built for farmers, powered by AI.</p>
-          <p>Privacy Policy · Terms of Service</p>
+          <p>Privacy Policy / Terms of Service</p>
         </div>
       </div>
     </footer>
@@ -687,3 +730,10 @@ function CountUpStat({ value, suffix }: { value: number; suffix: string }) {
     </div>
   );
 }
+
+
+
+
+
+
+

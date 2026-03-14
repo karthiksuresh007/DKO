@@ -1,9 +1,13 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -13,7 +17,7 @@ body {
     radial-gradient(circle at top left, rgba(214, 233, 168, 0.65), transparent 30%),
     linear-gradient(180deg, #f8fbf4 0%, #eef4e6 100%);
   color: #203018;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-body), "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 a {

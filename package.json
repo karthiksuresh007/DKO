@@ -11,7 +11,8 @@
     "dev:app": "npm run dev --workspace app",
     "dev:backend": "npm run dev --workspace backend",
     "build": "npm run build --workspace shared && npm run build --workspace backend && npm run build --workspace app",
-    "typecheck": "npm run build --workspace shared && npm run typecheck --workspace backend && npm run typecheck --workspace app"
+    "typecheck": "npm run build --workspace shared && npm run typecheck --workspace backend && npm run typecheck --workspace app",
+    "seed:demo": "npm run seed --workspace backend"
   },
   "engines": {
     "node": ">=20.0.0"
