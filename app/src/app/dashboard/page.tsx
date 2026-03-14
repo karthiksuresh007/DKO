@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import type { Escalation } from "@dko/shared";
+import type { Escalation, Notification } from "@dko/shared";
 import type { LucideIcon } from "lucide-react";
-import { AlertCircle, ArrowRight, CheckCircle2, Clock3, Leaf, LogOut, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Bell, CheckCircle2, Clock3, Leaf, LogOut, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { apiClient } from "@/lib/api";
 
@@ -24,6 +24,7 @@ export default function DashboardHomePage() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     if (!loading && !appUser) {
@@ -48,11 +49,16 @@ export default function DashboardHomePage() {
       setError(null);
 
       try {
-        const result = await apiClient.get<{ success: true; data: { items: Escalation[] } }>(`/escalations?status=${filter}`);
-        setItems(result.data.data.items);
+        const [escalationResult, notificationResult] = await Promise.all([
+          apiClient.get<{ success: true; data: { items: Escalation[] } }>(`/escalations?status=${filter}`),
+          apiClient.get<{ success: true; data: { items: Notification[]; unreadCount: number } }>("/notifications")
+        ]);
+
+        setItems(escalationResult.data.data.items);
+        setUnreadNotifications(notificationResult.data.data.unreadCount);
       } catch (loadError) {
         console.error(loadError);
-        setError("Failed to load escalations. Check officer access and backend connectivity.");
+        setError("Failed to load dashboard data. Check officer access and backend connectivity.");
       } finally {
         setFetching(false);
       }
@@ -116,6 +122,14 @@ export default function DashboardHomePage() {
             <p className="mt-5 max-w-[620px] text-base leading-8 text-[#6B7280]">
               Claim unresolved cases, review the AI answer and farmer context, then send a practical human response back into the same conversation thread.
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a className="inline-flex h-12 items-center justify-center rounded-full bg-[#0A0A0A] px-5 text-sm font-semibold text-white" href="/dashboard/analytics">
+                Open Analytics <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
+              <div className="inline-flex h-12 items-center rounded-full border border-[#E5E7EB] px-5 text-sm font-semibold text-[#0A0A0A]">
+                <Bell className="mr-2 h-4 w-4" /> {unreadNotifications} unread farmer notifications
+              </div>
+            </div>
           </div>
 
           <div className="relative min-h-[280px] overflow-hidden rounded-[32px]">

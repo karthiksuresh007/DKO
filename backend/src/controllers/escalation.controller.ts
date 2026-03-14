@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { escalationsRepository } from "../repositories/escalations.repository.js";
+import { notificationsRepository } from "../repositories/notifications.repository.js";
 import { queriesRepository } from "../repositories/queries.repository.js";
 import { responsesRepository } from "../repositories/responses.repository.js";
 import { usersRepository } from "../repositories/users.repository.js";
@@ -108,6 +109,14 @@ export async function respondToEscalation(request: Request, response: Response) 
   });
 
   const query = await queriesRepository.markResolved(escalation.queryId, content.trim());
+  await notificationsRepository.create({
+    userId: escalation.userId,
+    type: "officer_response",
+    title: "Officer response received",
+    message: "An agricultural officer has responded to your query. Open the conversation to review the advice.",
+    queryId: escalation.queryId,
+    escalationId: escalation.escalationId
+  });
 
   return sendSuccess(response, {
     response: officerResponse,

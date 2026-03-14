@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Camera, History, Leaf, LogOut, Mic, MessageSquareText } from "lucide-react";
+import type { Notification } from "@dko/shared";
+import { ArrowRight, Bell, Camera, History, Leaf, LogOut, Mic, MessageSquareText } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { apiClient } from "@/lib/api";
 
 const heroImage =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1400&q=80&auto=format&fit=crop";
@@ -39,12 +41,30 @@ const queryModes = [
 export default function FarmerQueryPage() {
   const router = useRouter();
   const { appUser, loading, logout } = useAuth();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     if (!loading && !appUser) {
       router.replace("/farmer/login");
     }
   }, [appUser, loading, router]);
+
+  useEffect(() => {
+    async function loadNotifications() {
+      if (!appUser) {
+        return;
+      }
+
+      try {
+        const result = await apiClient.get<{ success: true; data: { items: Notification[]; unreadCount: number } }>("/notifications");
+        setUnreadNotifications(result.data.data.unreadCount);
+      } catch (error) {
+        console.error("Failed to load farmer notifications", error);
+      }
+    }
+
+    void loadNotifications();
+  }, [appUser]);
 
   if (loading || !appUser) {
     return (
@@ -85,6 +105,9 @@ export default function FarmerQueryPage() {
               <a className="inline-flex h-12 items-center justify-center rounded-full bg-[#0A0A0A] px-5 text-sm font-semibold text-white" href="/farmer/history">
                 <History className="mr-2 h-4 w-4" /> Open History
               </a>
+              <a className="inline-flex h-12 items-center justify-center rounded-full border border-[#E5E7EB] px-5 text-sm font-semibold text-[#0A0A0A]" href="/farmer/notifications">
+                <Bell className="mr-2 h-4 w-4" /> Notifications {unreadNotifications > 0 ? `(${unreadNotifications})` : ""}
+              </a>
               <a className="inline-flex h-12 items-center justify-center rounded-full border border-[#E5E7EB] px-5 text-sm font-semibold text-[#0A0A0A]" href="/farmer/query/text">
                 Start New Query <ArrowRight className="ml-2 h-4 w-4" />
               </a>
@@ -122,6 +145,9 @@ export default function FarmerQueryPage() {
                 <div className="mt-6 flex flex-wrap gap-3">
                   <a className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10" href="/farmer/history">
                     <History className="mr-2 h-4 w-4" /> History
+                  </a>
+                  <a className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10" href="/farmer/notifications">
+                    <Bell className="mr-2 h-4 w-4" /> Notifications {unreadNotifications > 0 ? `(${unreadNotifications})` : ""}
                   </a>
                   <button
                     className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"

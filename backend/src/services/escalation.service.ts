@@ -1,5 +1,6 @@
 import type { Escalation, Query } from "@dko/shared";
 import { escalationsRepository } from "../repositories/escalations.repository.js";
+import { notificationsRepository } from "../repositories/notifications.repository.js";
 import { queriesRepository } from "../repositories/queries.repository.js";
 import { usersRepository } from "../repositories/users.repository.js";
 
@@ -48,6 +49,15 @@ export const escalationService = {
     });
 
     await queriesRepository.markEscalated(input.query.queryId);
+    await notificationsRepository.create({
+      userId: input.query.userId,
+      type: "escalation_created",
+      title: "Your query is under officer review",
+      message: "The AI answer needs human review. An agricultural officer will look at your case.",
+      queryId: input.query.queryId,
+      escalationId: escalation.escalationId
+    });
+
     return escalation;
   }
 };

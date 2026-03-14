@@ -4,6 +4,7 @@ export type QueryStatus = "pending" | "answered" | "escalated" | "resolved";
 export type ResponseType = "ai" | "officer";
 export type EscalationStatus = "pending" | "in_progress" | "resolved";
 export type FeedbackRating = "helpful" | "not_helpful";
+export type NotificationType = "escalation_created" | "officer_response" | "system";
 
 export interface User {
   userId: string;
@@ -80,6 +81,36 @@ export interface Feedback {
   rating: FeedbackRating;
   comment?: string;
   createdAt: string;
+}
+
+export interface Notification {
+  notificationId: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  queryId?: string | null;
+  escalationId?: string | null;
+  isRead: boolean;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface AnalyticsOverview {
+  totalQueries: number;
+  answeredQueries: number;
+  escalatedQueries: number;
+  resolvedQueries: number;
+  totalEscalations: number;
+  openEscalations: number;
+  totalNotifications: number;
+  unreadNotifications: number;
+  queryTypeBreakdown: Array<{ type: QueryType; count: number }>;
+  recentActivity: Array<{
+    label: string;
+    timestamp: string;
+    category: "query" | "escalation" | "notification";
+  }>;
 }
 
 export interface ApiSuccess<T> {
