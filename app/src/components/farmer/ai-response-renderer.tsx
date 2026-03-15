@@ -32,7 +32,7 @@ type AIResponseRendererProps = {
 const advisoryHeadingPattern = /^(warning|important|note|caution|when to seek help|when to get expert help|when to seek expert help|expert help|when to seek officer help|when to contact an officer)$/i;
 const headingPattern = /^(recommended actions?|steps?|prevention|treatment|next steps?|monitoring|diagnosis|summary|observation|follow-up|recommended plan)$/i;
 const numberedItemPattern = /^(\d+)[.)]\s+(.+)$/;
-const bulletItemPattern = /^[-*•]\s+(.+)$/;
+const bulletItemPattern = /^[-*\u2022]\s+(.+)$/;
 
 export function AIResponseRenderer({ content }: AIResponseRendererProps) {
   const blocks = parseContentBlocks(content);

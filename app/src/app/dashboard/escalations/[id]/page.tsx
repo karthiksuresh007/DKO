@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import type { Escalation, Query, Response as QueryResponse, User } from "@dko/shared";
 import { ArrowLeft, ArrowRight, Camera, Leaf, MessageSquareText, Mic, Send, UserRound } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { AIResponseRenderer } from "@/components/farmer/ai-response-renderer";
 import { apiClient } from "@/lib/api";
 
 const queryTypeMeta = {
@@ -192,7 +193,13 @@ export default function DashboardEscalationDetailPage() {
                 {responses.map((item) => (
                   <div key={item.responseId} className={`rounded-[24px] p-5 ${item.type === "officer" ? "border border-[#C8E6C9] bg-[#F1F8E9]" : "border border-[#E5E7EB] bg-[#FCFCFB]"}`}>
                     <div className="text-[11px] uppercase tracking-[0.22em] text-[#6B7280]">{item.type === "officer" ? `Officer ${item.officerName ?? "response"}` : `AI ${item.generatedBy ?? "response"}`}</div>
-                    <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#0A0A0A]">{item.content}</p>
+                    <div className="mt-4">
+                      {item.type === "officer" ? (
+                        <p className="whitespace-pre-line text-sm leading-7 text-[#0A0A0A]">{item.content}</p>
+                      ) : (
+                        <AIResponseRenderer content={item.content} />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
