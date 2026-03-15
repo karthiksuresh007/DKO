@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import {
   Camera,
   CheckCircle2,
   Clock3,
+  Languages,
   Leaf,
   MessageSquareText,
   Mic,
@@ -23,6 +24,14 @@ import { apiClient } from "@/lib/api";
 
 const responseImage =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80&auto=format&fit=crop";
+
+type ResponseLanguage = "en" | "hi" | "ml";
+
+const languageOptions: Array<{ value: ResponseLanguage; label: string }> = [
+  { value: "en", label: "English" },
+  { value: "hi", label: "Hindi" },
+  { value: "ml", label: "Malayalam" }
+];
 
 const queryTypeMeta = {
   text: {
@@ -56,6 +65,10 @@ export default function FarmerResponsePage() {
   const [error, setError] = useState<string | null>(null);
   const [feedbackState, setFeedbackState] = useState<"idle" | "helpful" | "not_helpful">("idle");
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<ResponseLanguage>("en");
+  const [translationCache, setTranslationCache] = useState<Partial<Record<ResponseLanguage, string>>>({});
+  const [translationLoading, setTranslationLoading] = useState<ResponseLanguage | null>(null);
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !appUser) {
@@ -109,6 +122,71 @@ export default function FarmerResponsePage() {
     latestResponse?.type === "officer"
       ? latestResponse.officerName ?? "Officer review"
       : latestResponse?.generatedBy ?? "Gemini";
+  const displayedContent =
+    selectedLanguage === "en"
+      ? latestResponse?.content ?? "No response yet."
+      : translationCache[selectedLanguage] ?? latestResponse?.content ?? "No response yet.";
+
+  useEffect(() => {
+    setSelectedLanguage("en");
+    setTranslationLoading(null);
+    setTranslationError(null);
+    setTranslationCache(latestResponse?.content ? { en: latestResponse.content } : {});
+  }, [latestResponse?.responseId, latestResponse?.content]);
+
+  async function handleLanguageChange(language: ResponseLanguage) {
+    if (!query || !latestResponse) {
+      return;
+    }
+
+    if (language === "en") {
+      setSelectedLanguage("en");
+      setTranslationError(null);
+      return;
+    }
+
+    if (translationCache[language]) {
+      setSelectedLanguage(language);
+      setTranslationError(null);
+      return;
+    }
+
+    setTranslationLoading(language);
+    setTranslationError(null);
+
+    try {
+      const result = await apiClient.post<{
+        success: true;
+        data: {
+          language: ResponseLanguage;
+          content: string;
+          translated: boolean;
+          modelUsed: string;
+        };
+      }>(`/queries/${query.queryId}/translate`, {
+        responseId: latestResponse.responseId,
+        language
+      });
+
+      if (!result.data.data.translated) {
+        setSelectedLanguage("en");
+        setTranslationError(`Translation to ${language === "hi" ? "Hindi" : "Malayalam"} is unavailable right now.`);
+        return;
+      }
+
+      setTranslationCache((current) => ({
+        ...current,
+        [language]: result.data.data.content
+      }));
+      setSelectedLanguage(language);
+    } catch (translationRequestError) {
+      console.error(translationRequestError);
+      setSelectedLanguage("en");
+      setTranslationError("Failed to translate the advisory right now. Showing English instead.");
+    } finally {
+      setTranslationLoading(null);
+    }
+  }
 
   async function sendFeedback(rating: "helpful" | "not_helpful") {
     if (!query || !latestResponse) {
@@ -268,6 +346,48 @@ export default function FarmerResponsePage() {
               </div>
             </div>
 
+            <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700">
+                <Languages className="h-4 w-4 text-neutral-500" /> View this advisory in
+              </div>
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-neutral-200 bg-white p-1">
+                {languageOptions.map((option) => {
+                  const isActive = selectedLanguage === option.value;
+                  const isLoading = translationLoading === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-neutral-950 text-white shadow-sm"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      }`}
+                      disabled={Boolean(translationLoading)}
+                      onClick={() => {
+                        void handleLanguageChange(option.value);
+                      }}
+                      type="button"
+                    >
+                      {isLoading ? `Translating ${option.label}...` : option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {translationError ? (
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                {translationError}
+              </div>
+            ) : null}
+
+            {selectedLanguage !== "en" && translationCache[selectedLanguage] ? (
+              <div className="mt-4 text-sm text-neutral-500">
+                Showing translated advisory in {selectedLanguage === "hi" ? "Hindi" : "Malayalam"}.
+              </div>
+            ) : null}
+
             {error ? (
               <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
@@ -275,7 +395,7 @@ export default function FarmerResponsePage() {
             ) : null}
 
             <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm md:p-8">
-              <AIResponseRenderer content={latestResponse?.content ?? "No response yet."} />
+              <AIResponseRenderer content={displayedContent} />
             </div>
 
             {latestResponse?.type !== "officer" ? (

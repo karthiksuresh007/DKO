@@ -3,7 +3,7 @@ import { escalationsRepository } from "../repositories/escalations.repository.js
 import { feedbackRepository } from "../repositories/feedback.repository.js";
 import { queriesRepository } from "../repositories/queries.repository.js";
 import { responsesRepository } from "../repositories/responses.repository.js";
-import { processImageQuery, processTextQuery, processVoiceQuery } from "../services/ai/text-query.service.js";
+import { processImageQuery, processTextQuery, processVoiceQuery, translateResponseContent } from "../services/ai/text-query.service.js";
 import { escalationService } from "../services/escalation.service.js";
 import { sendError, sendSuccess } from "../utils/http.js";
 
@@ -259,4 +259,62 @@ export async function submitQueryFeedback(request: Request, response: Response) 
     : null;
 
   return sendSuccess(response, { feedback, escalation }, 201);
+}
+export async function translateQueryResponse(request: Request, response: Response) {
+  if (!request.authUser) {
+    return sendError(response, 401, "UNAUTHORIZED", "Authentication required.");
+  }
+
+  const queryId = request.params.id;
+  const { responseId, language } = request.body as {
+    responseId?: string;
+    language?: "en" | "hi" | "ml";
+  };
+
+  if (typeof queryId !== "string") {
+    return sendError(response, 400, "VALIDATION_ERROR", "Query ID is required.");
+  }
+
+  if (!language || !["en", "hi", "ml"].includes(language)) {
+    return sendError(response, 400, "VALIDATION_ERROR", "language must be en, hi, or ml.");
+  }
+
+  const query = await queriesRepository.findById(queryId);
+  if (!query) {
+    return sendError(response, 404, "NOT_FOUND", "Query not found.");
+  }
+
+  if (!isAllowedToView(request.authUser.uid, request.authUser.role, query.userId)) {
+    return sendError(response, 403, "FORBIDDEN", "You do not have access to this query.");
+  }
+
+  const responses = await responsesRepository.listByQueryId(query.queryId);
+  const targetResponse = typeof responseId === "string"
+    ? responses.find((item) => item.responseId === responseId)
+    : responses[responses.length - 1];
+
+  if (!targetResponse) {
+    return sendError(response, 404, "NOT_FOUND", "Response not found for this query.");
+  }
+
+  if (language === "en") {
+    return sendSuccess(response, {
+      language,
+      content: targetResponse.content,
+      translated: false,
+      modelUsed: targetResponse.generatedBy ?? targetResponse.type
+    });
+  }
+
+  const translated = await translateResponseContent({
+    content: targetResponse.content,
+    language
+  });
+
+  return sendSuccess(response, {
+    language,
+    content: translated.content,
+    translated: translated.translated,
+    modelUsed: translated.modelUsed
+  });
 }

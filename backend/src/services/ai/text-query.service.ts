@@ -472,3 +472,43 @@ export async function processImageQuery(input: {
     };
   }
 }
+export async function translateResponseContent(input: {
+  content: string;
+  language: "hi" | "ml";
+}) {
+  if (!env.GEMINI_API_KEY) {
+    return {
+      content: input.content,
+      translated: false,
+      modelUsed: "fallback"
+    };
+  }
+
+  const languageLabel = input.language === "hi" ? "Hindi" : "Malayalam";
+  const prompt = [
+    `Translate the following agricultural advisory into ${languageLabel} for Indian farmers.`,
+    "Preserve headings, numbered steps, bullet points, warnings, and line breaks.",
+    "Do not add new advice. Do not remove existing advice.",
+    "Keep crop names, chemical names, measurements, and numerals accurate.",
+    "Return only the translated advisory.",
+    "",
+    "Advisory:",
+    input.content
+  ].join("\n");
+
+  try {
+    const result = await generateText([{ text: prompt }]);
+    return {
+      content: result.content,
+      translated: true,
+      modelUsed: result.modelUsed
+    };
+  } catch (error) {
+    console.error(`Gemini translation failed for ${languageLabel}`, error);
+    return {
+      content: input.content,
+      translated: false,
+      modelUsed: "fallback"
+    };
+  }
+}
