@@ -1,20 +1,21 @@
 {
-  "name": "dko-project",
-  "version": "0.1.0",
-  "private": true,
-  "workspaces": [
-    "app",
-    "backend",
-    "shared"
-  ],
-  "scripts": {
-    "dev:app": "npm run dev --workspace app",
-    "dev:backend": "npm run dev --workspace backend",
-    "build": "npm run build --workspace shared && npm run build --workspace backend && npm run build --workspace app",
-    "typecheck": "npm run build --workspace shared && npm run typecheck --workspace backend && npm run typecheck --workspace app",
-    "seed:demo": "npm run seed --workspace backend"
-  },
-  "engines": {
-    "node": "20.x"
-  }
+    "name":  "dko-project",
+    "version":  "0.1.0",
+    "private":  true,
+    "workspaces":  [
+                       "app",
+                       "backend",
+                       "shared"
+                   ],
+    "scripts":  {
+                    "dev:app":  "npm run dev --workspace app",
+                    "dev:backend":  "npm run dev --workspace backend",
+                    "build":  "npm run build --workspace app",
+                    "typecheck":  "npm run build --workspace shared \u0026\u0026 npm run typecheck --workspace backend \u0026\u0026 npm run typecheck --workspace app",
+                    "seed:demo":  "npm run seed --workspace backend",
+                    "build:all":  "npm run build --workspace shared \u0026\u0026 npm run build --workspace backend \u0026\u0026 npm run build --workspace app"
+                },
+    "engines":  {
+                    "node":  "20.x"
+                }
 }
