@@ -15,6 +15,6 @@
     "seed:demo": "npm run seed --workspace backend"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   }
 }

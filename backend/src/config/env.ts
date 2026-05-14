@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { cleanEnv, port, str } from "envalid";
@@ -5,7 +6,9 @@ import { cleanEnv, port, str } from "envalid";
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const envFilePath = resolve(currentDir, "../../.env");
 
-process.loadEnvFile(envFilePath);
+if (existsSync(envFilePath)) {
+  process.loadEnvFile(envFilePath);
+}
 
 export const env = cleanEnv(process.env, {
   PORT: port({ default: 4000 }),
@@ -18,6 +21,14 @@ export const env = cleanEnv(process.env, {
   CLOUDINARY_API_KEY: str({ default: "" }),
   CLOUDINARY_API_SECRET: str({ default: "" })
 });
+
+export const allowedClientOrigins = Array.from(
+  new Set(
+    env.CLIENT_ORIGIN.split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  )
+);
 
 export function normalizePrivateKey(value: string) {
   return value.replace(/\\n/g, "\n");
