@@ -1,6 +1,7 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { GlobalClickParticles } from "@/components/ui/global-click-particles";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable}`}>
       <body>
+        <GlobalClickParticles />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

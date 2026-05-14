@@ -1,18 +1,14 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Camera,
-  Facebook,
-  Instagram,
   Leaf,
-  Linkedin,
-  Mic,
-  Twitter
+  Mic
 } from "lucide-react";
 
 const farmFieldImage =
@@ -615,49 +611,60 @@ function EmailCaptureBanner() {
 }
 
 function FooterSection() {
-  const footerColumns = useMemo(
-    () => [
-      {
-        title: "COMPANY",
-        links: ["Features", "Pricing", "About Us", "Contact", "Blog"]
-      },
-      {
-        title: "RESOURCE",
-        links: ["Blog", "Customer Stories", "Information", "Legal", "Payments"]
-      },
-      {
-        title: "CAREER",
-        links: ["Jobs", "Hiring", "Talents"]
-      },
-      {
-        title: "HELP",
-        links: ["FAQ", "Help Center", "Support"]
-      }
-    ],
-    []
-  );
-
-  const socials = [Twitter, Facebook, Instagram, Linkedin];
+  const footerColumns = [
+    {
+      title: "Explore",
+      links: [
+        { label: "Home", href: "#home" },
+        { label: "About DKO", href: "#about" },
+        { label: "Farmer Stories", href: "#reviews" },
+        { label: "AI Solutions", href: "#products" }
+      ]
+    },
+    {
+      title: "Platform",
+      links: [
+        { label: "Farmer Login", href: "/farmer/login" },
+        { label: "Ask a Text Query", href: "/farmer/query/text" },
+        { label: "Voice Query", href: "/farmer/query/voice" },
+        { label: "Image Query", href: "/farmer/query/image" }
+      ]
+    },
+    {
+      title: "Officer",
+      links: [
+        { label: "Officer Login", href: "/dashboard/login" },
+        { label: "Officer Dashboard", href: "/dashboard" },
+        { label: "Analytics", href: "/dashboard/analytics" }
+      ]
+    }
+  ];
 
   return (
     <footer className="border-t border-[#E5E7EB] bg-[#F9FAFB] px-4 py-16 md:px-16">
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_0.8fr_0.8fr]">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <a className="flex items-center gap-2" href="#home">
               <Leaf className="h-5 w-5 text-[#2E7D32]" />
               <span className="text-base font-bold text-[#0A0A0A]">DKO</span>
             </a>
             <p className="mt-3 max-w-sm text-sm leading-7 text-[#6B7280]">
-              We are AI-powered agricultural advisors helping Indian farmers access
-              expert guidance instantly.
+              AI-powered crop guidance for farmers across text, voice, image, and officer support.
             </p>
-            <div className="mt-5 flex items-center gap-4">
-              {socials.map((Icon, index) => (
-                <button key={index} className="text-[#6B7280] transition hover:text-[#0A0A0A]" type="button">
-                  <Icon className="h-5 w-5" />
-                </button>
-              ))}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                className="inline-flex items-center rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#0A0A0A] transition hover:border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                href="/farmer/login"
+              >
+                Farmer Sign In
+              </a>
+              <a
+                className="inline-flex items-center rounded-full bg-[#0A0A0A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1F2937]"
+                href="/dashboard/login"
+              >
+                Officer Access
+              </a>
             </div>
           </div>
 
@@ -668,13 +675,13 @@ function FooterSection() {
               </h4>
               <div className="mt-4 space-y-2">
                 {column.links.map((link) => (
-                  <button
-                    key={link}
-                    className="block text-left text-sm leading-8 text-[#6B7280] transition hover:text-[#0A0A0A]"
-                    type="button"
+                  <a
+                    key={link.label}
+                    className="block text-sm leading-8 text-[#6B7280] transition hover:text-[#0A0A0A]"
+                    href={link.href}
                   >
-                    {link}
-                  </button>
+                    {link.label}
+                  </a>
                 ))}
               </div>
             </div>
@@ -682,14 +689,20 @@ function FooterSection() {
         </div>
 
         <div className="mt-12 flex flex-col justify-between gap-4 border-t border-[#E5E7EB] pt-6 text-[13px] text-[#9CA3AF] md:flex-row md:items-center">
-          <p>© 2026 Digital Krishi Officer. Built for farmers, powered by AI.</p>
-          <p>Privacy Policy / Terms of Service</p>
+          <p>© 2026 Digital Krishi Officer</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <a className="transition hover:text-[#0A0A0A]" href="#home">
+              Back to top
+            </a>
+            <a className="transition hover:text-[#0A0A0A]" href="/farmer/query">
+              Open farmer app
+            </a>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-
 function DecorativePlus({ className }: { className: string }) {
   return (
     <span className={`absolute text-[20px] font-light text-[#CBD5E1] ${className}`}>
@@ -730,6 +743,7 @@ function CountUpStat({ value, suffix }: { value: number; suffix: string }) {
     </div>
   );
 }
+
 
 
 
